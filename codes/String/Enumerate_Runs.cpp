@@ -1,5 +1,6 @@
 /*
 Tested : https://judge.yosupo.jp/submission/402738
+         https://codeforces.com/gym/104797/submission/390877982
 AI generated code
 */
 // returns [minimum_period, ans_l, ans_r] (閉區間, 0-based)
