@@ -1,43 +1,56 @@
 /*
-Tested: https://judge.yosupo.jp/submission/315990
-Write by: temmie
+Tested : https://judge.yosupo.jp/submission/402738
+AI generated code
 */
-vector<array<int, 3>> enumerate_run(string s){
-
+// returns [minimum_period, ans_l, ans_r] (閉區間, 0-based)
+// (ans_r - ans_l + 1) >= minimum_period * 2
+vector<array<int, 3>> enumerate_run(string s) {
     int n = s.size();
-    SuffixArray sa(s), saBar(string(s.rbegin(), s.rend()));
-    sa.init_lcp(), saBar.init_lcp();
+    if (n <= 1) return {};
+    vector<vector<pair<int, int>>> stor(n + 1);
 
-    set<pair<int, int>> ss;
-    vector<array<int, 3>> runs;
-    
-    for (int len=1 ; len<=n ; len++){
-        vector<int> lcp;
-        for (int i=0 ; i+len<n ; i+=len){
-            int pos1 = sa.pos[i];
-            int pos2 = sa.pos[i+len];
-            lcp.push_back(sa.get_lcp(pos1, pos2));
+    auto sub = [&](string l, string r) {
+        int a = l.size(), b = r.size();
+        auto zl = z_function(string(l.rbegin(), l.rend()));
+        auto zr = z_function(r + l + r); // Z_Algorithm.cpp
+        vector<array<int, 3>> res;
+        for (int p = 1; p <= a; p++) {
+            int x = (p == a) ? p : min(zl[p] + p, a);
+            int y = min(zr[a + b - p], b);
+            if (x + y >= 2 * p) res.push_back({p, x, y});
         }
-    
-        for (int ll=0, rr=0 ; ll<lcp.size() ; rr++, ll=rr){
-            while (rr<lcp.size() && lcp[rr]>=len) rr++;
-    
-            int preLen = 0;
-            if (ll!=0){
-                int p = n-1;
-                int pos1 = saBar.pos[p-(ll*len-1)];
-                int pos2 = saBar.pos[p-((ll+1)*len-1)];
-                preLen = saBar.get_lcp(pos1, pos2);
-            }
-            int sufLen = rr<lcp.size() ? lcp[rr] : 0;
-    
-            int ansL = ll*len-preLen, ansR = (rr+1)*len-1+sufLen;
-            if (ansL!=ansR && ansR-ansL+1>=2*len && ss.find({ansL, ansR+1})==ss.end()){
-                ss.insert({ansL, ansR+1});
-                runs.push_back({len, ansL, ansR+1});
-            }
+        return res;
+    };
+
+    auto dfs = [&](auto self, int l, int r) -> void {
+        if (r - l <= 1) return;
+        int m = (l + r) >> 1;
+        self(self, l, m); self(self, m, r);
+        auto sl = s.substr(l, m-l), sr = s.substr(m, r-m);
+        for (auto [p, a, b] : sub(sl, sr))
+            stor[p].push_back({m - a, m + b});
+        reverse(sl.begin(), sl.end());
+        reverse(sr.begin(), sr.end());
+        for (auto [p, a, b] : sub(sr, sl))
+            stor[p].push_back({m - b, m + a});
+    };
+    dfs(dfs, 0, n);
+
+    vector<array<int, 3>> runs;
+    set<pair<int, int>> done;
+    for (int p = 1; p <= n; p++) {
+        auto& v = stor[p];
+        sort(v.begin(), v.end(), [](auto& x, auto& y) {
+            return (x.first != y.first) ? (x < y)
+                                : (x.second > y.second);
+        });
+        int mx = -1;
+        for (auto &[l, r] : v) if (r > mx) {
+            mx = r;
+            if (done.insert({l, r}).second)
+                runs.push_back({p, l, r - 1});
         }
     }
-
+    sort(runs.begin(), runs.end());
     return runs;
 }
