@@ -1,96 +1,80 @@
-// 全部都是 0-based
-// Persistent_Segment_Tree st(n+q);
-// st.build(v, 0);
-// 函式：
-// update_version(pos, val, ver)：對版本 ver 的 pos 位置改成 val
-// query_version(ql, qr, ver)：對版本 ver 查詢 [ql, qr) 的區間和
-// clone_version(ver)：複製版本 ver 到最新的版本
-struct Persistent_Segment_Tree{
-    int node_cnt = 0;
-    struct Node{
-        int lc = -1;
-        int rc = -1;
-        int val = 0;
-    };
-    vector<Node> arr;
-    vector<int> version;
-    
-    Persistent_Segment_Tree(int sz){
-        arr.resize(32*sz);
-        version.push_back(node_cnt++);
-        return;
-    }
+/*
+Tested : https://cses.fi/paste/e6e2c1cedbac71a411e38fd/
+AI generated code
+*/
+// Each operation adds at most (K × ceil(log_2(n))) nodes
+// Range update : K = 8, Range query : K = 4
+// Only point update : ceil(log_2(n)) + 1
+// To optimize K, consider 懶標永久化
+struct Persistent_Segment_Tree { // 1-based, [l, r]
+	struct Node {
+		int lc = 0, rc = 0, sum = 0, tag = 0;
+	};
+	vector<Node> tr;
 
-    void pull(Node &c, Node a, Node b){
-        c.val = a.val+b.val;
-        return;
-    }
+	Persistent_Segment_Tree() {
+		tr.push_back({}); // Node 0 is null dummy
+	}
 
-    void build(vector<int> &v, int idx, int ll = 0, int rr = n){
-        auto &now = arr[idx];
+	void apply(int u, int len, int v) {
+		tr[u].sum += v * len;
+		tr[u].tag += v;
+	}
 
-        if (rr-ll==1){
-            now.val = v[ll];
-            return;
-        }
+	void pushup(Node& u) {
+		u.sum = tr[u.lc].sum + tr[u.rc].sum;
+	}
 
-        int mid = (ll+rr)/2;
-        now.lc = node_cnt++;
-        now.rc = node_cnt++;
-        build(v, now.lc, ll, mid);
-        build(v, now.rc, mid, rr);
-        pull(now, arr[now.lc], arr[now.rc]);
-        return;
-    }
+	Node merge(const Node& a, const Node& b) const {
+		return {0, 0, a.sum + b.sum, 0};
+	}
 
-    void update(int pos, int val, int idx, int ll = 0, int rr = n){
-        auto &now = arr[idx];
+	void pushdown(int u, int l, int r) {
+		if (!tr[u].tag) return;
+		int mid = (l + r) >> 1, tag = tr[u].tag;
+		int lc = tr.size(), rc = tr.size() + 1;
+		tr.push_back(tr[tr[u].lc]); tr.push_back(tr[tr[u].rc]);
+		apply(lc, mid - l + 1, tag); apply(rc, r - mid, tag);
+		tr[u].tag = 0; tr[u].lc = lc; tr[u].rc = rc;
+	}
 
-        if (rr-ll==1){
-            now.val = val;
-            return;
-        }
+	// Must build before use, returns root index
+	int build(int l, int r, const vector<int>& a = {}) {
+		int u = tr.size(); tr.push_back({});
+		if (l == r) {
+			tr[u].sum = (a.empty() ? 0 : a[l]);
+			return u;
+		}
+		int mid = (l + r) >> 1;
+		int lc = build(l, mid, a), rc = build(mid + 1, r, a);
+		tr[u].lc = lc; tr[u].rc = rc;
+		pushup(tr[u]);
+		return u;
+	}
 
-        int mid = (ll+rr)/2;
-        if (pos<mid){
-            arr[node_cnt] = arr[now.lc];
-            now.lc = node_cnt;
-            node_cnt++;
-            update(pos, val, now.lc, ll, mid);
-        }else{
-            arr[node_cnt] = arr[now.rc];
-            now.rc = node_cnt;
-            node_cnt++;
-            update(pos, val, now.rc, mid, rr);
-        }
-        pull(now, arr[now.lc], arr[now.rc]);
-        return;
-    }
+	// Returns root index
+	int update(int pre, int l, int r, int ql, int qr, int v) {
+		int u = tr.size(); tr.push_back(tr[pre]);
+		if (ql <= l && r <= qr) {
+			apply(u, r - l + 1, v);
+			return u;
+		}
+		pushdown(u, l, r);
+		int mid = (l + r) >> 1, lc = tr[u].lc, rc = tr[u].rc;
+		if (ql <= mid) lc = update(lc, l, mid, ql, qr, v);
+		if (qr > mid)  rc = update(rc, mid + 1, r, ql, qr, v);
+		tr[u].lc = lc; tr[u].rc = rc;
+		pushup(tr[u]);
+		return u;
+	}
 
-    void update_version(int pos, int val, int ver){
-        update(pos, val, version[ver]);
-    }
-
-    Node query(int ql, int qr, int idx, int ll = 0, int rr = n){
-        auto &now = arr[idx];
-
-        if (ql<=ll && rr<=qr) return now;
-        if (rr<=ql || qr<=ll) return Node();
-
-        int mid = (ll+rr)/2;
-
-        Node ret;
-        pull(ret, query(ql, qr, now.lc, ll, mid), query(ql, qr, now.rc, mid, rr));
-        return ret;
-    }
-
-    Node query_version(int ql, int qr, int ver){
-        return query(ql, qr, version[ver]);
-    }
-
-    void clone_version(int ver){
-        version.push_back(node_cnt);
-        arr[node_cnt] = arr[version[ver]];
-        node_cnt++;
-    }
+	Node query(int u, int l, int r, int ql, int qr) {
+		if (ql <= l && r <= qr) return tr[u];
+		pushdown(u, l, r);
+		int mid = (l + r) >> 1, lc = tr[u].lc, rc = tr[u].rc;
+		if (qr <= mid) return query(lc, l, mid, ql, qr);
+		if (ql > mid)  return query(rc, mid + 1, r, ql, qr);
+		return merge(query(lc, l, mid, ql, qr),
+					 query(rc, mid + 1, r, ql, qr));
+	}
 };
