@@ -68,6 +68,11 @@
     \lstinputlisting[language=bash]{#2}
 }
 
+\newcommand{\includebat}[2]{ % 支援 Batch (.bat)
+  \subsection{#1}
+    \lstinputlisting[language=bash]{#2}
+}
+
 \newcommand{\includetex}[2]{ % 支援 Latex (.tex)
   \subsection{#1}
     \input{#2}

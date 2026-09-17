@@ -88,6 +88,7 @@ RequireOptionDict = {
     ".tex": "includetex",
     ".vimrc": "includevim",
     ".sh": "includesh",
+    ".bat": "includebat",
 }
 
 # ANSI 顏色碼
