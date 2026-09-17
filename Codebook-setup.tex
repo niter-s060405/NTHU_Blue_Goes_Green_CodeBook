@@ -1,4 +1,4 @@
-\newcommand{\Version}{2026-09-16}
+\newcommand{\Version}{2026-09-17}
 % **************************************************
 % Packages
 % **************************************************
@@ -61,6 +61,11 @@
 \newcommand{\includepy}[2]{ % 支援 Python (.py)
   \subsection{#1}
     \lstinputlisting[language=python]{#2}
+}
+
+\newcommand{\includesh}[2]{ % 支援 Shell (.sh)
+  \subsection{#1}
+    \lstinputlisting[language=bash]{#2}
 }
 
 \newcommand{\includetex}[2]{ % 支援 Latex (.tex)
