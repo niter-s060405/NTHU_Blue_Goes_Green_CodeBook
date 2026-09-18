@@ -77,6 +77,58 @@ def update_version_in_setup(setup_path: str, tz: str = "Asia/Taipei") -> None:
     else:
         normal_print("    Version unchanged (already up to date)")
 
+def update_color_mode_in_setup(setup_path: str, is_black: bool) -> None:
+    """根據模式更新 Codebook-setup.tex 中的 BlackMode 設定"""
+    if not os.path.exists(setup_path):
+        colored_warning(f"{setup_path} not found; skip color mode update")
+        return
+
+    val = "true" if is_black else "false"
+    with open(setup_path, "r", encoding="utf-8") as f:
+        text = f.read()
+
+    pattern = r'(\\setboolean\{BlackMode\}\{)(true|false)(\})'
+    if re.search(pattern, text):
+        new_text = re.sub(pattern, rf'\g<1>{val}\g<3>', text)
+    else:
+        anchor = r'(\\newboolean\{UsingGeometryLandscape\})'
+        addition = f"\\newboolean{{BlackMode}}\n\\setboolean{{BlackMode}}{{{val}}}\n"
+        if re.search(anchor, text):
+            new_text = re.sub(anchor, addition + r'\1', text, count=1)
+        else:
+            new_text = addition + text
+
+    if new_text != text:
+        with open(setup_path, "w", encoding="utf-8") as f:
+            f.write(new_text)
+        colored_warning(f"Updated BlackMode -> {val}")
+    else:
+        normal_print(f"    BlackMode unchanged (already {val})")
+
+def print_help():
+    """印出使用說明"""
+    help_message = """
+Usage:
+    python build.py [OPTIONS]
+    build.py help
+
+Options:
+    --black, -b           Compile the Codebook in black-and-white mode.
+                          Uses only colors between white and black (grayscale)
+                          for the compiled Codebook.
+    help, -h, --help      Display this help message and exit.
+
+Modes:
+    Default Mode:
+        When build.py is called without --black, the Codebook is compiled with
+        full-color syntax highlighting (Blue, Red, Green).
+
+    Black Mode (--black):
+        When build.py is called with --black, the Codebook is compiled using only
+        colors between white and black (grayscale), suitable for black-and-white printing.
+"""
+    print(help_message.strip())
+
 sys.stdin.reconfigure(encoding="utf-8")
 sys.stdout.reconfigure(encoding="utf-8")
 
@@ -95,6 +147,8 @@ RequireOptionDict = {
 class Colors:
     RESET = '\033[0m'
     ORANGE = '\033[33m'    # 橘色 - 警告訊息
+
+is_black_mode = False
 
 def colored_warning(message):
     """印出橘色警告訊息"""
@@ -375,10 +429,23 @@ def GenerateCodebook(FileList, first_run):
         print() # New line after the progress bar
 
 if __name__ == "__main__":
-    normal_print("[#] Start Processing Code Book List...")
+    for arg in sys.argv[1:]:
+        if arg in ("help", "-h", "--help", "/?"):
+            print_help()
+            sys.exit(0)
+        elif arg in ("--black", "-b"):
+            is_black_mode = True
+        else:
+            colored_warning(f"Unknown argument: {arg}")
+            print_help()
+            sys.exit(1)
 
-        # 在編譯前更新 Codebook-setup.tex 的 \version
+    mode_desc = "Black & White (only colors between white and black)" if is_black_mode else "Full Color"
+    normal_print(f"[#] Start Processing Code Book List... [Mode: {mode_desc}]")
+
+    # 在編譯前更新 Codebook-setup.tex 的 \version 和 BlackMode
     update_version_in_setup("Codebook-setup.tex")
+    update_color_mode_in_setup("Codebook-setup.tex", is_black_mode)
 
     normal_print("[1] Get Codes...")
 

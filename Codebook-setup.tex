@@ -1,4 +1,4 @@
-\newcommand{\Version}{2026-09-17}
+\newcommand{\Version}{2026-09-18}
 % **************************************************
 % Packages
 % **************************************************
@@ -43,6 +43,8 @@
 
 \newboolean{UsingGeometryLandscape}
 \setboolean{UsingGeometryLandscape}{true} % 是否使用橫版頁面
+\newboolean{BlackMode}
+\setboolean{BlackMode}{false} % 是否使用黑白模式（僅使用黑白之間的顏色）
 \newcommand{\NumberOfTOCColumn}{4} % 每頁有幾欄
 \newcommand{\NumberOfColumn}{3} % 每頁有幾欄
 \newcommand{\UniversityName}{National Tsing Hua University} % 學校名稱
@@ -131,24 +133,39 @@
 % **************************************************
 % Listing Format (程式碼顯示)
 % **************************************************
+\newcommand{\NormalColor}{black} % 一般文字與符號顏色 (Color for normal words & symbols like '(', '<')
+
 \lstset{
-basicstyle=\scriptsize\ttfamily,        % the size of the fonts that are used for the code
-numbers=left,                           % where to put the line-numbers
-numberstyle=\tiny,                      % the size of the fonts that are used for the line-numbers
-stepnumber=1,                           % the step between two line-numbers. If it's 1, each line  will be numbered
-numbersep=5pt,                          % how far the line-numbers are from the code
-backgroundcolor=\color{white},          % choose the background color. You must add \usepackage{color}
-showspaces=false,                       % show spaces adding particular underscores
-showstringspaces=false,                 % underline spaces within strings
-showtabs=false,                         % show tabs within strings adding particular underscores
-frame=false,                            % adds a frame around the code
-tabsize=2,                              % sets default tabsize to 2 spaces
-captionpos=b,                           % sets the caption-position to bottom
-breaklines=true,                        % sets automatic line breaking
-breakatwhitespace=false,                % sets if automatic breaks should only happen at whitespace
-escapeinside={\%*}{*)},                 % if you want to add a comment within your code
-morekeywords={*},                       % if you want to add more keywords to the set
-keywordstyle=\bfseries\color{Blue1},
-commentstyle=\itshape\color{Red4},
-stringstyle=\itshape\color{Green4},
+basicstyle=\scriptsize\ttfamily\color{\NormalColor},        % 基礎字型、大小與符號顏色 (Symbols like '(', '<' inherit this color)
+numbers=left,                                               % where to put the line-numbers
+numberstyle=\tiny\color{black},                             % 行號顏色 (Line numbers color)
+stepnumber=1,                                               % the step between two line-numbers. If it's 1, each line  will be numbered
+numbersep=5pt,                                              % how far the line-numbers are from the code
+backgroundcolor=\color{white},                              % choose the background color. You must add \usepackage{color}
+showspaces=false,                                           % show spaces adding particular underscores
+showstringspaces=false,                                     % underline spaces within strings
+showtabs=false,                                             % show tabs within strings adding particular underscores
+frame=false,                                                % adds a frame around the code
+tabsize=2,                                                  % sets default tabsize to 2 spaces
+captionpos=b,                                               % sets the caption-position to bottom
+breaklines=true,                                            % sets automatic line breaking
+breakatwhitespace=false,                                    % sets if automatic breaks should only happen at whitespace
+escapeinside={\%*}{*)},                                     % if you want to add a comment within your code
+morekeywords={*},                                           % if you want to add more keywords to the set
+keywordstyle=\bfseries\color{Blue1},                        % 關鍵字顏色 (Keywords)
+commentstyle=\itshape\color{Red4},                          % 註解顏色 (Comments)
+stringstyle=\itshape\color{Green4},                         % 字串顏色 (Strings)
+identifierstyle=\color{\NormalColor},                       % 一般文字/變數/識別碼顏色 (Normal words / identifiers)
 }
+
+\ifthenelse{\boolean{BlackMode}}{
+  \selectcolormodel{gray}
+  \lstset{
+    basicstyle=\scriptsize\ttfamily\color{\NormalColor},
+    numberstyle=\tiny\color{\NormalColor},
+    keywordstyle=\bfseries\color{black},
+    commentstyle=\itshape\color{black!80},
+    stringstyle=\itshape\color{black!80},
+    identifierstyle=\color{\NormalColor},                          % 黑白模式下一般文字與符號顏色
+  }
+}{}
