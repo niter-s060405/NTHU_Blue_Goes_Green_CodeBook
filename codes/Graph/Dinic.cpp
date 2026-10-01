@@ -1,5 +1,6 @@
-// 一般圖：O(EV²)
 // 二分圖：O(E√V)
+// 整數流: O(E × min(V^(⅔), √E))
+// 浮點數且不是二分圖：O(EV²)
 struct Flow{
     using T = int; // 可以換成別的型別
     struct Edge{
