@@ -1,8 +1,8 @@
-# NTHU_BlueCapeFlyingCat_CodeBook
+# NTHU_Blue_Goes_Green_CodeBook
 
 ## 下載 Codebook
 ```sh
-git clone https://github.com/temmie-950807/NTHU_BlueCapeFlyingCat_CodeBook.git
+git clone https://github.com/niter-s060405/NTHU_Blue_Goes_Green_CodeBook.git
 ```
 
 ## 編譯 Codebook
